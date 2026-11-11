@@ -1,0 +1,106 @@
+<style>
+  .gh { background:#0d1117; color:#e6edf3; border:1px solid #30363d; border-radius:10px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; font-size:14px; line-height:1.5; overflow:hidden; }
+  .gh-top { display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid #30363d; background:#010409; font-size:14px; }
+  .gh-top .repo b { color:#4493f8; font-weight:600 } .gh-top .pill { margin-left:auto; display:flex; gap:6px; }
+  .gh-top .pill span { border:1px solid #30363d; border-radius:6px; padding:2px 10px; font-size:12px; color:#e6edf3; background:#212830 }
+  .gh-file { margin:16px; border:1px solid #30363d; border-radius:6px; }
+  .gh-file .hd { padding:8px 16px; border-bottom:1px solid #30363d; font-size:13px; color:#e6edf3; font-weight:600; }
+  .md { padding:24px 32px 32px; }
+  .md h1 { font-size:30px; margin:0 0 4px; border:0; color:#e6edf3; font-weight:700; letter-spacing:-.5px }
+  .md h2 { font-size:21px; margin:28px 0 10px; padding-bottom:6px; border-bottom:1px solid #30363d; color:#e6edf3; font-weight:600 }
+  .md p { margin:8px 0; color:#e6edf3 } .md .muted { color:#9198a1 }
+  .badges span { display:inline-block; font-size:11px; font-family:Verdana,sans-serif; margin-right:4px; border-radius:3px; overflow:hidden; }
+  .badges i { font-style:normal; background:#555; color:#fff; padding:2px 6px; display:inline-block } .badges em { font-style:normal; color:#fff; padding:2px 6px; display:inline-block }
+  .code { background:#151b23; border-radius:6px; padding:14px 16px; font-family:"SF Mono",Menlo,monospace; font-size:13.5px; color:#e6edf3; position:relative; margin:8px 0; }
+  .code .cp { position:absolute; right:10px; top:9px; border:1px solid #3d444d; border-radius:6px; padding:2px 7px; font-size:12px; color:#9198a1; font-family:-apple-system,sans-serif }
+  .code .c { color:#9198a1 }
+  .callout { border-left:4px solid #8957e5; padding:8px 14px; margin:10px 0; background:rgba(137,87,229,.06) }
+  .callout .t { color:#ab7df8; font-weight:600; font-size:14px }
+  .md table { border-collapse:collapse; margin:8px 0; font-size:13.5px }
+  .md td, .md th { border:1px solid #3d444d; padding:6px 12px; text-align:left } .md th { background:#151b23 }
+  .md code { background:rgba(101,108,118,.25); padding:2px 6px; border-radius:6px; font-family:"SF Mono",Menlo,monospace; font-size:12.5px }
+  .hero { display:flex; gap:14px; justify-content:center; margin:18px 0 6px; flex-wrap:wrap }
+  .shot { width:228px; aspect-ratio:9/16; border-radius:16px; background:radial-gradient(120% 80% at 0% 0%, #1b1035 0%, #0b0d12 55%), #0b0d12; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #30363d; }
+  .shot .term { font-family:"SF Mono",Menlo,monospace; font-size:5.6px; line-height:1.28; color:#d0d0d0; white-space:pre; }
+  .shot .big { display:block; line-height:1; background:linear-gradient(90deg,#00ffff,#0087ff 35%,#af87ff 65%,#ff87ff); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:700 }
+  .shot.alt .big { background:linear-gradient(90deg,#ffd700,#ff8700 45%,#ff5f87); -webkit-background-clip:text; background-clip:text }
+  .d{color:#6c6c6c}.w{color:#eee}.b{font-weight:700}.pk{color:#ff87ff}.cy{color:#00d7ff}.ye{color:#ffd700}.gr{color:#00ff00}.bl{color:#0087ff}.dk{color:#303030}.ln{color:#444}.or{color:#ff8700}.vi{color:#af87ff}
+  .gif { font-size:11px; color:#9198a1; text-align:center; margin-top:2px }
+  details { margin:8px 0; } summary { cursor:pointer; color:#e6edf3; font-weight:600 }
+  .ann { font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; color:#0b0d12; background:#ffd33d; border-radius:10px; padding:1px 8px; margin-left:8px; vertical-align:middle; letter-spacing:.2px }
+</style>
+
+<h2>The GitHub repo page</h2>
+<p class="subtitle">What a stranger sees first. Yellow tags mark the three things you asked for. The name is a placeholder (see chat).</p>
+
+<div class="gh">
+  <div class="gh-top"><span class="repo">Sezos / <b>gitflex</b></span><span class="muted" style="color:#9198a1;font-size:12px;border:1px solid #30363d;border-radius:10px;padding:0 7px">Public</span>
+    <div class="pill"><span>☆ Star 1.2k</span><span>⑂ Fork 48</span></div></div>
+  <div class="gh-file"><div class="hd">README.md</div>
+  <div class="md">
+
+    <h1>gitflex</h1>
+    <p class="muted">Your whole GitHub in one screenshot. Stats, stack, streak, and how much of it AI wrote.</p>
+    <div class="badges"><span><i>npm</i><em style="background:#cb3837">v1.0.0</em></span><span><i>runs with</i><em style="background:#007ec6">npx</em></span><span><i>license</i><em style="background:#4c1">MIT</em></span></div>
+
+    <div class="hero">
+      <div><div class="shot"><div class="term" id="shotA"></div></div><div class="gif">▶ animated GIF of the reveal</div></div>
+      <div><div class="shot alt"><div class="term" id="shotB"></div></div><div class="gif">--hide-private, a different theme</div></div>
+    </div>
+    <p style="text-align:center"><span class="ann">DEMO IMAGES</span></p>
+
+    <h2>Try it in 5 seconds <span class="ann">INSTALL</span></h2>
+    <div class="code"><span class="cp">⧉</span>npx gitflex</div>
+    <p class="muted">Uses your <code>gh</code> login if you have the GitHub CLI. If not, it asks for a token once. Nothing to install.</p>
+    <div class="code"><span class="cp">⧉</span><span class="c"># peek at anyone's public card</span>
+npx gitflex torvalds</div>
+
+    <h2>Or let your AI do it <span class="ann">MD FOR AI</span></h2>
+    <div class="callout"><div class="t">✦ Paste this into Claude Code, Cursor, or Codex</div>
+      <div class="code" style="margin:8px 0 2px"><span class="cp">⧉</span>Set up gitflex for me: https://github.com/Sezos/gitflex/blob/main/AGENTS.md</div>
+      <p class="muted" style="margin:6px 0 0">AGENTS.md walks your AI through checking Node, logging into GitHub, running the card, and adding a shell alias.</p>
+    </div>
+
+    <h2>Post it</h2>
+    <div class="code"><span class="cp">⧉</span>npx gitflex --story <span class="c"># saves gitflex-story.png, 1080×1920, ready for IG</span></div>
+    <p class="muted">Or screenshot your terminal. Tip: make the window narrow and tall.</p>
+
+    <h2>Options</h2>
+    <table>
+      <tr><th>flag</th><th>what it does</th></tr>
+      <tr><td><code>--hide-private</code></td><td>masks private repo names before you post</td></tr>
+      <tr><td><code>--story</code></td><td>exports a 1080×1920 PNG instead of a screenshot</td></tr>
+      <tr><td><code>--fast</code></td><td>skips the reveal animation</td></tr>
+      <tr><td><code>"any text"</code></td><td>custom banner instead of your name</td></tr>
+    </table>
+
+    <h2>How the AI meter works</h2>
+    <details open><summary>What counts as "AI"?</summary>
+      <p class="muted">A commit counts as AI-assisted if it carries an AI co-author trailer (Claude Code, Copilot, Cursor, Aider…) or was made by an AI agent account. Inline autocomplete leaves no trace in git, so it's never counted. The number is a floor, not a guess.</p>
+    </details>
+
+  </div></div>
+</div>
+
+<script>
+(function(){
+  var banner = function(n){ return '<span class="big">' + n + '</span>'; };
+  var BAD = "██████╗  █████╗ ██████╗ ██████╗  █████╗ ██╗\n██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██║\n██████╔╝███████║██║  ██║██████╔╝███████║██║\n██╔══██╗██╔══██║██║  ██║██╔══██╗██╔══██║██║\n██████╔╝██║  ██║██████╔╝██║  ██║██║  ██║███████╗\n╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝";
+  var MIA = "███╗   ███╗██╗ █████╗\n████╗ ████║██║██╔══██╗\n██╔████╔██║██║███████║\n██║╚██╔╝██║██║██╔══██║\n██║ ╚═╝ ██║██║██║  ██║\n╚═╝     ╚═╝╚═╝╚═╝  ╚═╝";
+  var lv = ["#3a3a3a","#005f00","#008700","#00af00","#00ff00"], seed = 3;
+  function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  function heat(){ var o=""; for (var r=0;r<7;r++){ o+='<span class="d">'+(["","Mon","","Wed","","Fri",""][r]+"    ").slice(0,4)+'</span>'; for (var k=0;k<26;k++){ var h=Math.pow(k/25,1.4),l=0; if(rnd()<h*.9+.08) l=Math.min(4,1+Math.floor(rnd()*(1+h*4))); o+='<span style="color:'+lv[l]+'">■</span> '; } o+="\n"; } return o; }
+  function sec(t){ return '<span class="pk">──</span><span class="b w"> '+t+' </span><span class="ln">'+"─".repeat(Math.max(3,50-t.length))+'</span>\n'; }
+  function card(name, user, repos, stack, build){
+    return banner(name) + '\n  <span class="w">github.com/'+user+'</span>\n\n' + sec("STATS") + repos + '\n' + sec("STACK") + stack + '\n' + sec("LAST 6 MONTHS") + heat() + '\n' + sec("CURRENTLY BUILDING") + build;
+  }
+  document.getElementById("shotA").innerHTML = card(BAD, "Sezos",
+    '<span class="d">repos         </span><span class="b cy">108</span>\n<span class="d">contributions </span><span class="b vi">818</span>\n<span class="d">streak        </span><span class="b pk">3 days</span>\n',
+    '<span class="w">TypeScript  </span><span class="bl">████████████████████</span>\n<span class="w">Dart        </span><span class="cy">██████████████████</span>\n<span class="w">JavaScript  </span><span class="ye">████████████</span>\n',
+    '<span class="gr">●</span> <span class="w">physicue-pro-app   </span><span class="pk">▰▰▰▰▰▰▰▰</span><span class="dk">▱▱</span> <span class="b">75%</span><span class="d"> AI</span>\n<span class="gr">●</span> <span class="w">hymdral_backend    </span><span class="pk">▰▰▰▰▰▰▰▰▰▰</span> <span class="b">99%</span><span class="d"> AI</span>\n<span class="ye">●</span> <span class="w">vitamin-house      </span><span class="pk">▰▰▰▰▰▰▰▰▰</span><span class="dk">▱</span> <span class="b">90%</span><span class="d"> AI</span>\n\n<span class="d">overall </span><span class="b pk">75% AI-assisted</span>');
+  document.getElementById("shotB").innerHTML = card(MIA, "mia-codes",
+    '<span class="d">repos         </span><span class="b ye">41</span>\n<span class="d">contributions </span><span class="b or">1,204</span>\n<span class="d">streak        </span><span class="b pk">19 days</span>\n',
+    '<span class="w">Python      </span><span class="gr">██████████████████████</span>\n<span class="w">Rust        </span><span class="or">█████████</span>\n<span class="w">Go          </span><span class="cy">██████</span>\n',
+    '<span class="gr">●</span> <span class="w">🔒 private repo    </span><span class="pk">▰▰</span><span class="dk">▱▱▱▱▱▱▱▱</span> <span class="b">18%</span><span class="d"> AI</span>\n<span class="gr">●</span> <span class="w">tiny-raytracer     </span><span class="dk">▱▱▱▱▱▱▱▱▱▱</span> <span class="b">0%</span><span class="d"> AI</span>\n<span class="ye">●</span> <span class="w">🔒 private repo    </span><span class="pk">▰▰▰▰▰</span><span class="dk">▱▱▱▱▱</span> <span class="b">47%</span><span class="d"> AI</span>\n\n<span class="d">overall </span><span class="b pk">22% AI-assisted</span>');
+})();
+</script>

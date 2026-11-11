@@ -1,0 +1,75 @@
+<style>
+  .cards { display:grid !important; grid-template-columns:1fr !important; gap:16px !important; }
+  .cards .card { display:flex !important; flex-direction:row !important; align-items:stretch; }
+  .cards .card-image { flex:0 0 auto; padding:12px; background:transparent !important; height:auto !important; }
+  .cards .card-body { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; padding:16px 20px; }
+  @media (max-width: 760px) { .cards .card { flex-direction:column !important; } }
+  .term { background:#0b0d12; border-radius:10px; padding:12px 16px 14px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12px; line-height:1.4; color:#d0d0d0; white-space:pre; box-shadow:0 6px 24px rgba(0,0,0,.35); width:max-content; }
+  .term .dots { display:block; margin-bottom:8px; white-space:normal; line-height:1; }
+  .term .dots i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+  .big { display:block; line-height:1.02; letter-spacing:0; }
+  .d { color:#6c6c6c } .b { font-weight:700 } .w { color:#eeeeee }
+  .pk { color:#ff87ff } .cy { color:#00d7ff } .vi { color:#af87ff } .gr { color:#00ff00 } .ye { color:#ffd700 }
+  .ln { color:#444 } .dk { color:#303030 } .sh { color:#5f5f87 } .bl { color:#0087ff }
+  .g1{color:#00ffff}.g3{color:#00afff}.g5{color:#8787ff}.g6{color:#af87ff}.g8{color:#ff87ff}
+  .note { font-size:13px; opacity:.75; margin-top:14px }
+</style>
+
+<h2>Where should the AI meter live on the card?</h2>
+<p class="subtitle">Same data in all three (roughly your real numbers). Click the one that feels most "I need to post this". Mixing is fine, just say so in chat.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a-bar" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="term"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><span class="pk">──</span><span class="b w"> WHO WROTE IT </span><span class="d">· last 90 days</span> <span class="ln">────────────────────────</span>
+
+<span class="cy">██████████████</span><span class="pk">██████████████████████████████████████████</span>
+<span class="cy">■</span> <span class="w">you</span> <span class="b">25%</span>      <span class="pk">■</span> <span class="w">you + AI</span> <span class="b">75%</span>      <span class="vi">■</span> <span class="w">AI agents</span> <span class="b">0%</span>
+
+<span class="d">sidekick       </span><span class="b pk">Claude Opus 5.5</span><span class="d">  · 412 commits</span>
+<span class="d">most AI repo   </span><span class="w">endless-mahjong</span><span class="d">  · 99% AI</span>
+<span class="d">most you repo  </span><span class="w">playhouse_backend</span><span class="d">  · 70% you</span></div></div>
+    <div class="card-body">
+      <h3>A · One big split bar</h3>
+      <p>Its own section, like Stack. One bar split three ways, plus your top AI "sidekick" and your most/least AI repos.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b-hero" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="term"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><span class="pk">──</span><span class="b w"> AI METER </span><span class="d">· last 90 days</span> <span class="ln">────────────────────────────</span>
+<span class="big">
+  <span class="g1">███████</span><span class="sh">╗</span><span class="g3">███████</span><span class="sh">╗</span><span class="g6">██</span><span class="sh">╗ </span><span class="g8">██</span><span class="sh">╗</span>
+  <span class="sh">╚════</span><span class="g1">██</span><span class="sh">║</span><span class="g3">██</span><span class="sh">╔════╝╚═╝</span><span class="g8">██</span><span class="sh">╔╝</span>
+  <span class="sh">    </span><span class="g1">██</span><span class="sh">╔╝</span><span class="g3">███████</span><span class="sh">╗  </span><span class="g6">██</span><span class="sh">╔╝ </span>      <span class="w b">of my commits</span>
+  <span class="sh">   </span><span class="g1">██</span><span class="sh">╔╝ ╚════</span><span class="g3">██</span><span class="sh">║ </span><span class="g6">██</span><span class="sh">╔╝  </span>      <span class="w b">had AI on them</span>
+  <span class="sh">   </span><span class="g1">██</span><span class="sh">║  </span><span class="g3">███████</span><span class="sh">║</span><span class="g5">██</span><span class="sh">╔╝</span><span class="g8">██</span><span class="sh">╗</span>
+  <span class="sh">   ╚═╝  ╚══════╝╚═╝ ╚═╝</span>
+</span>
+<span class="w">Claude Opus 5.5    </span><span class="pk">██████████████████████</span><span class="dk">░░░░░░</span> <span class="b">62%</span>
+<span class="w">Claude Sonnet 5.5  </span><span class="vi">█████</span><span class="dk">░░░░░░░░░░░░░░░░░░░░░░░</span> <span class="b">14%</span>
+<span class="w">no AI signature    </span><span class="cy">█████████</span><span class="dk">░░░░░░░░░░░░░░░░░░░</span> <span class="b">25%</span></div></div>
+    <div class="card-body">
+      <h3>B · Giant number</h3>
+      <p>The percentage in huge block digits, the headline of the whole card. Then a short breakdown by AI model.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c-per-repo" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="term"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><span class="pk">──</span><span class="b w"> CURRENTLY BUILDING </span><span class="ln">────────────────────────────────────</span>
+<span class="gr">●</span> <span class="w">physicue-pro-app     </span><span class="cy">Dart</span>   <span class="pk">▰▰▰▰▰▰▰▰</span><span class="dk">▱▱</span> <span class="b">75%</span><span class="d"> AI   17m ago</span>
+<span class="gr">●</span> <span class="w">hymdral_backend      </span><span class="bl">TS  </span>   <span class="pk">▰▰▰▰▰▰▰▰▰▰</span> <span class="b">99%</span><span class="d"> AI   13h ago</span>
+<span class="gr">●</span> <span class="w">hymdral_admin_next   </span><span class="bl">TS  </span>   <span class="pk">▰▰▰▰▰▰▰▰▰▰</span> <span class="b">98%</span><span class="d"> AI   14h ago</span>
+<span class="ye">●</span> <span class="w">vitamin-house        </span><span class="bl">TS  </span>   <span class="pk">▰▰▰▰▰▰▰▰▰</span><span class="dk">▱</span> <span class="b">90%</span><span class="d"> AI    2d ago</span>
+<span class="ye">●</span> <span class="w">endless-mahjong      </span><span class="cy">Dart</span>   <span class="pk">▰▰▰▰▰▰▰▰▰▰</span> <span class="b">99%</span><span class="d"> AI    3d ago</span>
+<span class="ye">●</span> <span class="w">playhouse_backend    </span><span class="ye">JS  </span>   <span class="pk">▰▰▰</span><span class="dk">▱▱▱▱▱▱▱</span> <span class="b">30%</span><span class="d"> AI    9d ago</span>
+
+<span class="d">overall </span><span class="b pk">75% AI-assisted</span><span class="d"> · sidekick </span><span class="w">Claude Opus 5.5</span></div></div>
+    <div class="card-body">
+      <h3>C · Per repo</h3>
+      <p>No new section. Each repo in "Currently building" gets a small AI bar, with one overall line at the bottom.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="note">All three would carry a tiny footnote: "AI = commits signed by an AI co-author or agent. Autocomplete leaves no trace, so it isn't counted."</p>
