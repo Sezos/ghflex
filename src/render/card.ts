@@ -1,5 +1,6 @@
+import { computeMeter, type MeterResult } from '../ai/meter.js';
 import { activeRepos, busiestDay, languageStack, streaks } from '../stats.js';
-import type { CardData, CardOptions, Day, ThemeName } from '../types.js';
+import type { CardData, CardOptions, Day, Repo, ThemeName } from '../types.js';
 import { bannerLines, pickBanner } from './font.js';
 import { type Line, type Span, THEMES, width } from './spans.js';
 
@@ -196,10 +197,154 @@ function heatmapRows(calendar: Day[], now: Date): Line[] {
   return rows;
 }
 
+// ---------- currently building + AI meter ----------
+
+export const TAGLINES = [
+  'it works on my machine',
+  'sleep is a deprecated dependency',
+  'git commit -m "final_final_v3"',
+  'rm -rf node_modules && pray',
+  'shipping > perfect',
+  'coffee in, commits out',
+  '99 little bugs in the code...',
+  'deploying on a friday, no fear',
+];
+
+const BUILDING_ROWS = 6;
+const AI_FILLED = 213;
+const GREEN = 46;
+const YELLOW = 220;
+const GRAY = 240;
+
+const SHORT_LANG: Record<string, string> = {
+  TypeScript: 'TS',
+  JavaScript: 'JS',
+  Python: 'Py',
+  Kotlin: 'Kt',
+  Shell: 'Sh',
+};
+const KEEP_LANG = new Set(['Dart', 'Go', 'Rust', 'Swift', 'Java', 'Ruby', 'C', 'C++', 'C#', 'HTML', 'CSS', 'Vue']);
+
+function langLabel(lang: string | null): string {
+  if (!lang) return '';
+  if (SHORT_LANG[lang]) return SHORT_LANG[lang];
+  return KEEP_LANG.has(lang) ? lang : [...lang].slice(0, 5).join('');
+}
+
+function age(fromIso: string, now: Date): string {
+  const mins = Math.max(0, (now.getTime() - Date.parse(fromIso)) / 60_000);
+  if (mins < 60) return `${Math.max(1, Math.floor(mins))}m`;
+  const hours = mins / 60;
+  if (hours < 24) return `${Math.floor(hours)}h`;
+  const days = hours / 24;
+  if (days < 30) return `${Math.floor(days)}d`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  return `${Math.floor(days / 365)}y`;
+}
+
+function dotColor(fromIso: string, now: Date): number {
+  const hours = (now.getTime() - Date.parse(fromIso)) / 3_600_000;
+  return hours < 24 ? GREEN : hours < 24 * 7 ? YELLOW : GRAY;
+}
+
+function repoName(r: Repo, hidePrivate: boolean): Span {
+  if (hidePrivate && r.isPrivate) return { text: '(private)'.padEnd(20), dim: true };
+  // 20-column field that always ends in a gap: names over 19 characters become 18 + '…'.
+  const chars = [...r.name];
+  const name = chars.length > 19 ? `${chars.slice(0, 18).join('')}…` : r.name;
+  return { text: name.padEnd(20), fg: WHITE };
+}
+
+interface BuildingRow {
+  repo: Repo;
+  since: string; // last user commit, or pushedAt for fill rows
+  pct: number | null; // null = no commits in the window
+}
+
+function pickBuildingRows(data: CardData, meter: MeterResult): BuildingRow[] {
+  const byName = new Map<string, Repo>();
+  for (const r of [...data.ownedRepos, ...data.scan.scannedRepos]) byName.set(r.nameWithOwner, r);
+
+  const active: BuildingRow[] = [];
+  for (const m of meter.perRepo.values()) {
+    const repo = byName.get(m.repo);
+    if (repo && m.lastUserCommit) active.push({ repo, since: m.lastUserCommit, pct: m.pct });
+  }
+  active.sort((a, b) => Date.parse(b.since) - Date.parse(a.since));
+  const rows = active.slice(0, BUILDING_ROWS);
+
+  const listed = new Set(rows.map((r) => r.repo.nameWithOwner));
+  const fill = [...data.ownedRepos]
+    .filter((r) => !listed.has(r.nameWithOwner))
+    .sort((a, b) => Date.parse(b.pushedAt) - Date.parse(a.pushedAt));
+  for (const repo of fill) {
+    if (rows.length >= BUILDING_ROWS) break;
+    rows.push({ repo, since: repo.pushedAt, pct: null });
+  }
+  return rows;
+}
+
+function buildingLine(row: BuildingRow, data: CardData, opts: CardOptions): Line {
+  const lang = langLabel(row.repo.primaryLanguage);
+  const line: Line = [
+    { text: '● ', fg: dotColor(row.since, data.now) },
+    repoName(row.repo, opts.hidePrivate),
+    { text: lang.padEnd(6), fg: LANG_COLORS[row.repo.primaryLanguage ?? ''] ?? 244 },
+  ];
+  if (row.pct === null) {
+    line.push({ text: 'no commits in 90d '.padEnd(18), dim: true });
+  } else {
+    const filled = Math.round(row.pct / 10);
+    line.push(
+      { text: '▰'.repeat(filled), fg: AI_FILLED },
+      { text: '▱'.repeat(10 - filled), fg: TRACK },
+      { text: ' ' },
+      { text: `${row.pct}%`.padStart(4), bold: true },
+      { text: ' AI', dim: true },
+    );
+  }
+  line.push({ text: age(row.since, data.now).padStart(10), dim: true });
+  return clip(line);
+}
+
+function aiLines(data: CardData, meter: MeterResult, accent: number): Line[] {
+  const overall: Line = [
+    { text: 'overall ', dim: true },
+    { text: `${meter.overall.pct}% AI-assisted`, bold: true, fg: accent },
+  ];
+  if (meter.sidekick) overall.push({ text: ' · sidekick ', dim: true }, { text: meter.sidekick, fg: WHITE });
+  const footnote = data.scan.capped
+    ? 'AI = signed commits, last 90d (newest 60 repos only)'
+    : 'AI = commits signed by an AI co-author/agent, last 90d';
+  return [clip(overall), [{ text: footnote, fg: GRAY, dim: true }]];
+}
+
+const AD = 'npx ghflex';
+
+function footerLines(tagline: string, accent: number): Line[] {
+  const prompt: Line = clip(
+    [
+      { text: '➜ ', fg: GREEN, bold: true },
+      { text: '~ ', fg: 51 },
+      { text: `${tagline} `, fg: WHITE },
+      { text: '█', fg: accent, blink: true },
+    ],
+    WIDTH,
+  );
+  const ad: Span = { text: AD, dim: true };
+  const used = width(prompt);
+  if (used + 2 + AD.length <= WIDTH) {
+    return [[...prompt, { text: ' '.repeat(WIDTH - used - AD.length) }, ad]];
+  }
+  return [prompt, [{ text: ' '.repeat(WIDTH - AD.length) }, ad]];
+}
+
 // ---------- card ----------
 
 export function renderCard(data: CardData, opts: CardOptions): Line[] {
   const accent = accentOf(opts.theme);
+  const meter = computeMeter(data.scan.commits);
+  const building = pickBuildingRows(data, meter);
   return [
     [],
     ...bannerLines(pickBanner(data.profile, opts.banner), opts.theme),
@@ -214,6 +359,15 @@ export function renderCard(data: CardData, opts: CardOptions): Line[] {
     [],
     section('LAST 6 MONTHS', accent),
     ...heatmapRows(data.profile.calendar, data.now),
+    [],
+    section('CURRENTLY BUILDING', accent),
+    ...(building.length
+      ? building.map((row) => buildingLine(row, data, opts))
+      : [[{ text: 'no repos yet', dim: true }] as Line]),
+    [],
+    ...aiLines(data, meter, accent),
+    [],
+    ...footerLines(opts.tagline, accent),
     [],
   ];
 }
