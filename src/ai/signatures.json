@@ -1,0 +1,21 @@
+{
+  "coauthorEmails": [
+    { "tool": "Claude", "pattern": "noreply@anthropic\\.com$" },
+    { "tool": "Cursor", "pattern": "^cursoragent@cursor\\.com$" },
+    { "tool": "Copilot", "pattern": "\\+copilot@users\\.noreply\\.github\\.com$" },
+    { "tool": "Aider", "pattern": "@aider\\.chat$" }
+  ],
+  "messageMarkers": [
+    { "tool": "Claude Code", "pattern": "Generated with \\[?Claude Code" },
+    { "tool": "aider", "pattern": "^aider: " }
+  ],
+  "authorNameMarkers": [{ "tool": "aider", "pattern": "\\(aider\\)$" }],
+  "agentAuthors": [
+    "copilot-swe-agent",
+    "devin-ai-integration",
+    "google-labs-jules",
+    "claude[bot]",
+    "chatgpt-codex-connector",
+    "cursor[bot]"
+  ]
+}
