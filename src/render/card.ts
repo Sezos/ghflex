@@ -54,7 +54,7 @@ export function clip(line: Line, max = WIDTH): Line {
       left -= chars.length;
       continue;
     }
-    out.push({ ...span, text: chars.slice(0, left).join('') + '…' });
+    out.push({ ...span, text: `${chars.slice(0, left).join('')}…` });
     return out;
   }
   return out;
