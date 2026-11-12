@@ -26,6 +26,18 @@ export function notFound(target: Target): GitHubError {
   return new GitHubError('not_found', `No GitHub user named '${login}'.`);
 }
 
+/** Just the node id and login — cheap enough to fetch first so the commit scan can start right away. */
+export async function fetchIdentity(client: GraphQLClient, target: Target): Promise<Pick<Profile, 'id' | 'login'>> {
+  const r = rootFor(target);
+  const { data } = await client.query<Record<string, { id: string; login: string } | null>>(
+    `${r.header} { ${r.field} { id login } }`,
+    r.vars,
+  );
+  const node = data[r.key];
+  if (!node) throw notFound(target);
+  return { id: node.id, login: node.login };
+}
+
 interface ProfileNode {
   id: string;
   login: string;

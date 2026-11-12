@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { fetchProfile } from '../../src/github/profile.js';
+import { fetchIdentity, fetchProfile } from '../../src/github/profile.js';
 import { fetchOwnedRepos } from '../../src/github/repos.js';
 import { NOW } from '../fixtures/cards.js';
 import { fakeClient, type Handler } from './fake-client.js';
@@ -154,4 +154,25 @@ test('peek drops private repos even if the API returns them', async () => {
   ]);
   const repos = await fetchOwnedRepos(c, { kind: 'user', login: 'mia' });
   expect(repos.map((r) => r.name)).toEqual(['r1', 'r3']);
+});
+
+test('fetchIdentity returns just id and login, for the viewer or a user', async () => {
+  const c = fakeClient([
+    (q) => (q.includes('viewer { id login }') ? { viewer: { id: 'U_1', login: 'Sezos' } } : undefined),
+    (q, vars) =>
+      q.includes('user(login: $login) { id login }') && vars?.login === 'mia'
+        ? { user: { id: 'U_mia', login: 'mia' } }
+        : undefined,
+  ]);
+  expect(await fetchIdentity(c, { kind: 'viewer' })).toEqual({ id: 'U_1', login: 'Sezos' });
+  expect(await fetchIdentity(c, { kind: 'user', login: 'mia' })).toEqual({ id: 'U_mia', login: 'mia' });
+});
+
+test('fetchIdentity: unknown user is not_found', async () => {
+  await expect(
+    fetchIdentity(fakeClient([() => ({ user: null })]), { kind: 'user', login: 'ghost-xyz' }),
+  ).rejects.toMatchObject({
+    kind: 'not_found',
+    message: "No GitHub user named 'ghost-xyz'.",
+  });
 });

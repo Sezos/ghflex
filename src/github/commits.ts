@@ -28,7 +28,7 @@ interface Job {
 }
 
 interface CommitNode {
-  message: string;
+  message?: string; // not requested on the agents page
   committedDate: string;
   parents: { totalCount: number };
   author: { name: string | null; email: string | null; user: { id: string; login: string } | null } | null;
@@ -81,18 +81,28 @@ async function selfCandidates(client: GraphQLClient, since: string) {
 }
 
 /** Public repos a user committed to in the window, plus their public owned repos pushed in the window. */
-async function peekCandidates(client: GraphQLClient, login: string, ownedRepos: Repo[], since: string, now: Date) {
+async function peekCandidates(
+  client: GraphQLClient,
+  login: string,
+  ownedRepos: Repo[] | Promise<Repo[]>,
+  since: string,
+  now: Date,
+) {
   const q = `query($login: String!) { user(login: $login) { contributionsCollection(from: "${since}", to: "${now.toISOString()}") { commitContributionsByRepository(maxRepositories: 100) { repository { ${REPO_FIELDS} } } } } }`;
-  const { data } = await client.query<{
-    user: { contributionsCollection: { commitContributionsByRepository: { repository: RepoNode | null }[] } } | null;
-  }>(q, { login });
+  // the contributions query and the owned-repos fetch run side by side
+  const [{ data }, owned] = await Promise.all([
+    client.query<{
+      user: { contributionsCollection: { commitContributionsByRepository: { repository: RepoNode | null }[] } } | null;
+    }>(q, { login }),
+    Promise.resolve(ownedRepos),
+  ]);
   if (!data.user) throw notFound({ kind: 'user', login });
 
   const byName = new Map<string, Repo>();
   for (const c of data.user.contributionsCollection.commitContributionsByRepository) {
     if (c.repository) byName.set(c.repository.nameWithOwner, toRepo(c.repository));
   }
-  for (const r of ownedRepos) if (r.pushedAt >= since && !byName.has(r.nameWithOwner)) byName.set(r.nameWithOwner, r);
+  for (const r of owned) if (r.pushedAt >= since && !byName.has(r.nameWithOwner)) byName.set(r.nameWithOwner, r);
 
   const repos = [...byName.values()]
     .filter((r) => !r.isPrivate)
@@ -103,9 +113,10 @@ async function peekCandidates(client: GraphQLClient, login: string, ownedRepos: 
 // ---------- history ----------
 
 function historyQuery(jobs: Job[], who: Who, since: string): string {
-  const fields =
-    'pageInfo { hasNextPage endCursor } nodes { message committedDate parents { totalCount } author { name email user { id login } } }';
+  const commitFields = 'committedDate parents { totalCount } author { name email user { id login } }';
   const parts = jobs.map((job, i) => {
+    // agent detection only needs the author, so the (possibly huge) unfiltered page skips messages
+    const fields = `pageInfo { hasNextPage endCursor } nodes { ${job.mode === 'user' ? 'message ' : ''}${commitFields} }`;
     const [owner, name] = job.repo.nameWithOwner.split('/');
     const args = [`first: ${PAGE_SIZE}`, `since: ${JSON.stringify(since)}`];
     if (job.after) args.push(`after: ${JSON.stringify(job.after)}`);
@@ -137,7 +148,7 @@ async function fetchBatch(client: GraphQLClient, jobs: Job[], who: Who, since: s
       if (!keep) continue;
       out.commits.push({
         repo: job.repo.nameWithOwner,
-        message: n.message,
+        message: n.message ?? '',
         authorName,
         authorEmail,
         authorLogin,
@@ -179,7 +190,7 @@ export async function scanCommits(
   client: GraphQLClient,
   target: Target,
   profile: Who,
-  ownedRepos: Repo[],
+  ownedRepos: Repo[] | Promise<Repo[]>,
   now: Date,
 ): Promise<ScanResult> {
   const since = new Date(now.getTime() - WINDOW_DAYS * DAY_MS).toISOString();

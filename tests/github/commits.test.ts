@@ -289,3 +289,45 @@ test('peek: candidates are public only, from contributions and public owned repo
   expect(r.scannedRepos.map((x) => x.nameWithOwner).sort()).toEqual(['acme/oss', 'mia/site']);
   expect(f.queries.some((q) => q.includes('internal'))).toBe(false);
 });
+
+test('the agents page skips commit messages (agent detection never reads them)', async () => {
+  const f = fakeClient([
+    candidates([repoNode('Sezos/app', 1)]),
+    // like GitHub, the fake leaves out fields the query didn't ask for
+    histories((_o, _n, args) =>
+      args.includes('author:')
+        ? { nodes: [] }
+        : { nodes: [{ ...agentCommit(), message: undefined as unknown as string }] },
+    ),
+  ]);
+  const r = await scanCommits(f, { kind: 'viewer' }, me, owned, NOW);
+  const q = f.queries.find((x) => x.includes('history(')) ?? '';
+  const aliases = q.split(/(?=r\d+: repository)/).filter((s) => s.startsWith('r'));
+  expect(aliases.find((a) => a.includes('author:'))).toContain('nodes { message');
+  expect(aliases.find((a) => !a.includes('author:'))).not.toContain('message');
+  expect(r.commits).toEqual([expect.objectContaining({ message: '', byUser: false })]);
+});
+
+test('peek accepts owned repos as a promise, so it can start before they arrive', async () => {
+  const mia = { id: 'U_mia', login: 'mia' };
+  let resolveOwned: (r: Repo[]) => void = () => {};
+  const ownedLater = new Promise<Repo[]>((res) => {
+    resolveOwned = res;
+  });
+  const f = fakeClient([
+    (q) =>
+      q.includes('commitContributionsByRepository')
+        ? {
+            user: {
+              contributionsCollection: { commitContributionsByRepository: [{ repository: repoNode('acme/oss', 1) }] },
+            },
+          }
+        : undefined,
+    histories(() => ({ nodes: [] })),
+  ]);
+  const scan = scanCommits(f, { kind: 'user', login: 'mia' }, mia, ownedLater, NOW);
+  await new Promise((r) => setTimeout(r, 0));
+  expect(f.queries.some((q) => q.includes('commitContributionsByRepository'))).toBe(true); // started already
+  resolveOwned([]);
+  expect((await scan).scannedRepos.map((x) => x.nameWithOwner)).toEqual(['acme/oss']);
+});
