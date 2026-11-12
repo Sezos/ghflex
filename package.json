@@ -30,10 +30,15 @@
     "ai",
     "instagram"
   ],
+  "homepage": "https://github.com/Sezos/ghflex#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Sezos/ghflex.git"
   },
+  "bugs": {
+    "url": "https://github.com/Sezos/ghflex/issues"
+  },
+  "author": "Badral",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",
