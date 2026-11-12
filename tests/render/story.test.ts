@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import { renderCard } from '../../src/render/card.js';
@@ -68,12 +68,17 @@ test.skipIf(!fontsPresent)('PNG is exactly 1080x1920', async () => {
 });
 
 test.skipIf(!fontsPresent)('every glyph used by fixture cards exists in the bundled fonts', async () => {
-  // dev dependency added together with the fonts; a non-literal specifier keeps typecheck green until then
+  // opentype.js ships no type declarations; a non-literal specifier keeps typecheck happy
+  type Font = { charToGlyphIndex(ch: string): number };
+  type Parse = (buf: ArrayBuffer) => Font;
   const specifier = 'opentype.js';
-  const opentype = (await import(specifier)) as {
-    loadSync(path: string): { charToGlyphIndex(ch: string): number };
-  };
-  const fonts = STORY_FONT_FILES.map((u) => opentype.loadSync(fileURLToPath(u)));
+  const mod = (await import(specifier)) as { parse?: Parse; default?: { parse: Parse } };
+  const parse = mod.parse ?? mod.default?.parse;
+  if (!parse) throw new Error('opentype.js has no parse()');
+  const fonts = STORY_FONT_FILES.map((u) => {
+    const bytes = readFileSync(fileURLToPath(u));
+    return parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  });
   const chars = new Set([richData(), emptyData(), longNamesData()].flatMap((d) => plain(renderCard(d, opts))).join(''));
   for (const ch of chars) {
     if (ch !== ' ')
