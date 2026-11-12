@@ -21,6 +21,15 @@ const AGENT_AUTHORS = signatures.agentAuthors.map((a) => a.toLowerCase());
 
 const TRAILER = /^co-authored-by:\s*(.+?)\s*<([^>]+)>/gim;
 
+// Trailer names come from other people's commits: keep printable single-width characters only, so
+// nothing can inject terminal escape sequences or break the card's column math.
+const NOT_PRINTABLE = /[^\x20-\x7E\u00A0-\u024F]/g;
+const MAX_NAME = 40;
+
+function cleanName(raw: string, fallback: string): string {
+  return raw.replace(NOT_PRINTABLE, '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME).trim() || fallback;
+}
+
 type Author = { authorName: string; authorEmail: string; authorLogin: string | null };
 
 function agentEntry(a: Author): string | null {
@@ -45,7 +54,8 @@ export function classifyCommit(
 
   for (const m of c.message.matchAll(TRAILER)) {
     const [, name, email] = m;
-    if (COAUTHOR_EMAILS.some((p) => p.re.test(email.trim()))) return { bucket: 'mixed', aiName: name.trim() };
+    const match = COAUTHOR_EMAILS.find((p) => p.re.test(email.trim()));
+    if (match) return { bucket: 'mixed', aiName: cleanName(name, match.tool) };
   }
 
   const marker =

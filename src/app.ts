@@ -85,18 +85,16 @@ export async function run(argv: string[], d: AppDeps): Promise<number> {
   try {
     const { token } = await d.getToken();
     const client = d.makeClient(token);
-    spinner = startSpinner(d.stderr, 'fetching your greatness...');
+    spinner = startSpinner(d.stderr, 'fetching your greatness...', Boolean(d.stderr.isTTY) && !d.env.NO_COLOR);
     const data = await loadCardData(client, opts, d.now());
     spinner.stop();
 
     const tagline = TAGLINES[Math.floor(d.random() * TAGLINES.length) % TAGLINES.length];
     const lines = renderCard(data, { theme: opts.theme, hidePrivate: opts.hidePrivate, banner: opts.banner, tagline });
     const tty = Boolean(d.stdout.isTTY);
-    await writeCard(lines, d.stdout, {
-      color: colorEnabled(d.env, tty),
-      animate: tty && !opts.fast,
-      clear: tty && opts.clear,
-    });
+    const color = colorEnabled(d.env, tty);
+    // clearing and the reveal are escape codes too, so NO_COLOR turns them off as well
+    await writeCard(lines, d.stdout, { color, animate: tty && color && !opts.fast, clear: tty && color && opts.clear });
 
     if (opts.story) {
       const png = await d.renderStory(lines);

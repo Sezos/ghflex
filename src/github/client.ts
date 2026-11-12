@@ -97,6 +97,9 @@ export function createClient(token: string, o: ClientOptions = {}): GraphQLClien
 
         const json = (await res.json()) as { data?: T | null; errors?: GraphQLErrorItem[] };
         const errors = json.errors ?? [];
+        if (errors.some((e) => e.type === 'RATE_LIMITED')) {
+          throw new GitHubError('rate_limit', 'GitHub rate limit hit. Wait a few minutes and try again.');
+        }
         if (json.data === null || json.data === undefined) {
           throw new GitHubError('server', `GitHub API error: ${errors[0]?.message ?? 'empty response'}`);
         }

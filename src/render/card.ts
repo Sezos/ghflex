@@ -313,9 +313,16 @@ function aiLines(data: CardData, meter: MeterResult, accent: number): Line[] {
     { text: `${meter.overall.pct}% AI-assisted`, bold: true, fg: accent },
   ];
   if (meter.sidekick) overall.push({ text: ' · sidekick ', dim: true }, { text: meter.sidekick, fg: WHITE });
-  const footnote = data.scan.capped
-    ? 'AI = signed commits, last 90d (newest 60 repos only)'
-    : 'AI = commits signed by an AI co-author/agent, last 90d';
+  const { capped, skipped } = data.scan;
+  const unreadable = `${skipped} repo${skipped === 1 ? '' : 's'} unreadable`;
+  const footnote =
+    capped && skipped
+      ? `AI = signed commits, last 90d (newest 60, ${skipped} unreadable)`
+      : capped
+        ? 'AI = signed commits, last 90d (newest 60 repos only)'
+        : skipped
+          ? `AI = signed commits, last 90d (${unreadable})`
+          : 'AI = commits signed by an AI co-author/agent, last 90d';
   return [clip(overall), [{ text: footnote, fg: GRAY, dim: true }]];
 }
 

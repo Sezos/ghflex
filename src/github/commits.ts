@@ -28,6 +28,7 @@ interface Job {
 }
 
 interface CommitNode {
+  oid: string;
   message?: string; // not requested on the agents page
   committedDate: string;
   parents: { totalCount: number };
@@ -113,7 +114,7 @@ async function peekCandidates(
 // ---------- history ----------
 
 function historyQuery(jobs: Job[], who: Who, since: string): string {
-  const commitFields = 'committedDate parents { totalCount } author { name email user { id login } }';
+  const commitFields = 'oid committedDate parents { totalCount } author { name email user { id login } }';
   const parts = jobs.map((job, i) => {
     // agent detection only needs the author, so the (possibly huge) unfiltered page skips messages
     const fields = `pageInfo { hasNextPage endCursor } nodes { ${job.mode === 'user' ? 'message ' : ''}${commitFields} }`;
@@ -129,11 +130,12 @@ function historyQuery(jobs: Job[], who: Who, since: string): string {
 interface BatchResult {
   commits: CommitRecord[];
   next: Job[];
+  skipped: string[];
 }
 
 async function fetchBatch(client: GraphQLClient, jobs: Job[], who: Who, since: string): Promise<BatchResult> {
   const { data } = await client.query<Record<string, HistoryNode | null>>(historyQuery(jobs, who, since));
-  const out: BatchResult = { commits: [], next: [] };
+  const out: BatchResult = { commits: [], next: [], skipped: [] };
   jobs.forEach((job, i) => {
     const history = data[`r${i}`]?.defaultBranchRef?.target?.history;
     if (!history) return; // forbidden (SAML), deleted, or empty repo
@@ -154,6 +156,7 @@ async function fetchBatch(client: GraphQLClient, jobs: Job[], who: Who, since: s
         authorLogin,
         committedDate: n.committedDate,
         byUser,
+        oid: n.oid,
       });
     }
     if (job.mode === 'user' && job.page < MAX_PAGES && history.pageInfo.hasNextPage && history.pageInfo.endCursor) {
@@ -169,13 +172,17 @@ async function fetchResilient(client: GraphQLClient, jobs: Job[], who: Who, sinc
     return await fetchBatch(client, jobs, who, since);
   } catch (e) {
     if (!(e instanceof GitHubError) || e.kind !== 'server') throw e;
-    if (jobs.length === 1) return { commits: [], next: [] };
+    if (jobs.length === 1) return { commits: [], next: [], skipped: [jobs[0].repo.nameWithOwner] };
     const mid = Math.ceil(jobs.length / 2);
     const [a, b] = await Promise.all([
       fetchResilient(client, jobs.slice(0, mid), who, since),
       fetchResilient(client, jobs.slice(mid), who, since),
     ]);
-    return { commits: [...a.commits, ...b.commits], next: [...a.next, ...b.next] };
+    return {
+      commits: [...a.commits, ...b.commits],
+      next: [...a.next, ...b.next],
+      skipped: [...a.skipped, ...b.skipped],
+    };
   }
 }
 
@@ -203,17 +210,37 @@ export async function scanCommits(
   let pending: Job[] = repos.flatMap((repo): Job[] => {
     const owned = repo.nameWithOwner.split('/')[0].toLowerCase() === login;
     const user: Job = { repo, mode: 'user', after: null, page: 1 };
-    return owned ? [user, { repo, mode: 'agents', after: null, page: 1 }] : [user];
+    // forks carry upstream's history, so upstream's bot commits must not count as the user's AI
+    return owned && !repo.isFork ? [user, { repo, mode: 'agents', after: null, page: 1 }] : [user];
   });
 
-  const commits: CommitRecord[] = [];
+  const collected: CommitRecord[] = [];
+  const skipped = new Set<string>();
   while (pending.length) {
     const results = await mapLimit(chunk(pending, BATCH_SIZE), CONCURRENCY, (jobs) =>
       fetchResilient(client, jobs, profile, since),
     );
     pending = results.flatMap((r) => r.next);
-    for (const r of results) commits.push(...r.commits);
+    for (const r of results) {
+      collected.push(...r.commits);
+      for (const name of r.skipped) skipped.add(name);
+    }
   }
 
-  return { commits, scannedRepos: repos, capped };
+  return { commits: dedupeAcrossForks(collected, repos), scannedRepos: repos, capped, skipped: skipped.size };
+}
+
+/** A commit on both a fork and its upstream counts once, under the non-fork repo. */
+function dedupeAcrossForks(commits: CommitRecord[], repos: Repo[]): CommitRecord[] {
+  const isFork = new Map(repos.map((r) => [r.nameWithOwner, r.isFork]));
+  const ordered = [...commits].sort(
+    (a, b) => Number(isFork.get(a.repo) ?? false) - Number(isFork.get(b.repo) ?? false),
+  );
+  const seen = new Set<string>();
+  return ordered.filter((c) => {
+    if (!c.oid) return true;
+    if (seen.has(c.oid)) return false;
+    seen.add(c.oid);
+    return true;
+  });
 }

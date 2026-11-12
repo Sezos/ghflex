@@ -104,3 +104,14 @@ test('mapLimit caps concurrency and keeps order', async () => {
   expect(r).toEqual([2, 4, 6, 8, 10, 12]);
   expect(peak).toBe(2);
 });
+
+test('REVIEW: a 200 response carrying a RATE_LIMITED error is a rate_limit error, not data', async () => {
+  const body = { data: null, errors: [{ type: 'RATE_LIMITED', message: 'API rate limit exceeded' }] };
+  await expect(createClient('t', { fetch: scripted([res(200, body)]) }).query('q')).rejects.toMatchObject({
+    kind: 'rate_limit',
+  });
+  const partial = { data: { r0: null }, errors: [{ type: 'RATE_LIMITED', message: 'API rate limit exceeded' }] };
+  await expect(createClient('t', { fetch: scripted([res(200, partial)]) }).query('q')).rejects.toMatchObject({
+    kind: 'rate_limit',
+  });
+});

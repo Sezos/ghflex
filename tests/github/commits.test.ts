@@ -29,6 +29,7 @@ const candidates =
       : undefined;
 
 type CommitNode = {
+  oid?: string;
   message: string;
   committedDate: string;
   parents: { totalCount: number };
@@ -244,6 +245,7 @@ test('persistent 502 splits the batch and skips only the bad repo', async () => 
   ]);
   const r = await scanCommits(f, { kind: 'viewer' }, me, owned, NOW);
   expect(new Set(r.commits.map((c) => c.repo))).toEqual(new Set(['o/r0', 'o/r1', 'o/r2', 'o/r4']));
+  expect(r.skipped).toBe(1);
 });
 
 test('auth errors are not swallowed by the batch splitting', async () => {
@@ -330,4 +332,30 @@ test('peek accepts owned repos as a promise, so it can start before they arrive'
   expect(f.queries.some((q) => q.includes('commitContributionsByRepository'))).toBe(true); // started already
   resolveOwned([]);
   expect((await scan).scannedRepos.map((x) => x.nameWithOwner)).toEqual(['acme/oss']);
+});
+
+test('REVIEW: an owned fork gets no agents page (upstream bots are not your AI)', async () => {
+  const f = fakeClient([
+    candidates([repoNode('Sezos/forked-lib', 1, { isFork: true })]),
+    histories((_o, _n, args) => (args.includes('author:') ? { nodes: [userCommit(1)] } : { nodes: [agentCommit()] })),
+  ]);
+  const r = await scanCommits(f, { kind: 'viewer' }, me, owned, NOW);
+  expect(r.commits.filter((c) => !c.byUser)).toHaveLength(0);
+  const perRepoArgs = f.queries.flatMap((q) => [...q.matchAll(ALIAS)].map((m) => m[4]));
+  expect(perRepoArgs.every((a) => a.includes('author:'))).toBe(true);
+});
+
+test('REVIEW: the same commit on a fork and its upstream counts once, under the upstream', async () => {
+  const f = fakeClient([
+    candidates([repoNode('Sezos/lib', 1, { isFork: true }), repoNode('acme/lib', 1)]),
+    histories(() => ({ nodes: [userCommit(1, { oid: 'abc123' }), userCommit(2, { oid: 'def456' })] })),
+  ]);
+  const r = await scanCommits(f, { kind: 'viewer' }, me, owned, NOW);
+  expect(r.commits).toHaveLength(2);
+  expect(r.commits.every((c) => c.repo === 'acme/lib')).toBe(true);
+});
+
+test('a clean scan reports nothing skipped', async () => {
+  const f = fakeClient([candidates([repoNode('acme/x', 1)]), histories(() => ({ nodes: [userCommit(1)] }))]);
+  expect((await scanCommits(f, { kind: 'viewer' }, me, owned, NOW)).skipped).toBe(0);
 });

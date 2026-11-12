@@ -119,7 +119,7 @@ export function richData(): CardData {
     mode: 'self',
     profile: profile({}),
     ownedRepos: owned,
-    scan: { commits, scannedRepos: [...named, org], capped: false },
+    scan: { commits, scannedRepos: [...named, org], capped: false, skipped: 0 },
     now: NOW,
   };
 }
@@ -137,7 +137,7 @@ export function emptyData(): CardData {
       allTimeTotal: 0,
     }),
     ownedRepos: [],
-    scan: { commits: [], scannedRepos: [], capped: false },
+    scan: { commits: [], scannedRepos: [], capped: false, skipped: 0 },
     now: NOW,
   };
 }
@@ -155,6 +155,7 @@ export function longNamesData(): CardData {
       ],
       scannedRepos: [long],
       capped: false,
+      skipped: 0,
     },
     now: NOW,
   };
@@ -172,6 +173,7 @@ export function peekData(): CardData {
       commits: [commit('mia/lib-0', null, DAY, 'mia'), commit('mia/lib-1', 'Claude Opus 5.5', 2 * DAY, 'mia')],
       scannedRepos: owned.slice(0, 2),
       capped: false,
+      skipped: 0,
     },
     now: NOW,
   };

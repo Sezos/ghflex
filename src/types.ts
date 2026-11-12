@@ -25,6 +25,8 @@ export interface CommitRecord {
   authorLogin: string | null;
   committedDate: string;
   byUser: boolean;
+  /** Git object id, used to count a commit once when it sits on a fork and its upstream. */
+  oid?: string;
 }
 
 export interface Profile {
@@ -41,6 +43,8 @@ export interface ScanResult {
   commits: CommitRecord[];
   scannedRepos: Repo[];
   capped: boolean;
+  /** Repos whose history kept failing and was left out. */
+  skipped: number;
 }
 
 export interface CardData {

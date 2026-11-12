@@ -188,3 +188,21 @@ test('--help lists every flag and --version prints the version', async () => {
   expect(await run(['--version'], v)).toBe(0);
   expect(v.stdout.buf).toBe('0.1.0\n');
 });
+
+test('REVIEW FOCUS: NO_COLOR on a terminal writes no escape codes at all (no clear, no animation, no spinner)', async () => {
+  const d = fakeDeps(richApiResponses(), { env: { NO_COLOR: '1' } });
+  d.stdout.isTTY = true;
+  d.stderr.isTTY = true;
+  expect(await run(['--fast'], d)).toBe(0);
+  expect(d.stdout.buf).not.toMatch(/\x1b/);
+  expect(d.stderr.buf).not.toMatch(/\x1b/);
+  expect(d.stdout.buf).toContain('npx ghflex');
+});
+
+test('a normal terminal still gets color, the clear and the reveal', async () => {
+  const d = fakeDeps(richApiResponses());
+  d.stdout.isTTY = true;
+  expect(await run([], d)).toBe(0);
+  expect(d.stdout.buf).toContain('\x1b[2J\x1b[H');
+  expect(d.stdout.buf).toContain('\x1b[?25l');
+});

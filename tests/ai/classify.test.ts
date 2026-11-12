@@ -58,3 +58,17 @@ test('REVIEW FOCUS: humans named like AI tools stay you', () => {
 test('plain commit is you', () => {
   expect(classifyCommit({ ...me, message: 'refactor: tidy' })).toEqual({ bucket: 'you', aiName: null });
 });
+
+test('REVIEW: control characters and wide text in a trailer name never reach the terminal', () => {
+  const evil = classifyCommit({
+    ...me,
+    message: msg('Co-Authored-By: Claude\u001b]0;pwned\u0007\u001b[2J  Opus\u009b5.5 <noreply@anthropic.com>'),
+  });
+  expect(evil.bucket).toBe('mixed');
+  expect(evil.aiName).toBe('Claude]0;pwned[2J Opus5.5');
+  expect(evil.aiName).not.toMatch(/[\u0000-\u001f\u007f-\u009f]/);
+  const wide = classifyCommit({ ...me, message: msg('Co-Authored-By: 克劳德🤖 <noreply@anthropic.com>') });
+  expect(wide).toEqual({ bucket: 'mixed', aiName: 'Claude' });
+  const long = classifyCommit({ ...me, message: msg(`Co-Authored-By: ${'x'.repeat(80)} <noreply@anthropic.com>`) });
+  expect(long.aiName).toHaveLength(40);
+});

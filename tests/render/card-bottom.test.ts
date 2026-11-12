@@ -67,3 +67,12 @@ test('npx ghflex is on every card', () => {
     expect(plain(renderCard(d, opts)).join('\n')).toContain('npx ghflex');
   }
 });
+
+test('REVIEW: repos that could not be read are disclosed in the footnote', () => {
+  const d = richData();
+  d.scan.skipped = 2;
+  expect(plain(renderCard(d, opts))).toContain('AI = signed commits, last 90d (2 repos unreadable)');
+  d.scan.skipped = 1;
+  d.scan.capped = true;
+  expect(plain(renderCard(d, opts))).toContain('AI = signed commits, last 90d (newest 60, 1 unreadable)');
+});

@@ -67,8 +67,10 @@ export function buildStorySvg(lines: Line[], font: { family: string; advance: nu
 }
 
 /** Renders the story PNG with the bundled fonts only, so it looks the same on every machine. */
-export async function renderStoryPng(lines: Line[]): Promise<Buffer> {
-  const fontFiles = STORY_FONT_FILES.map((u) => fileURLToPath(u));
+export async function renderStoryPng(
+  lines: Line[],
+  fontFiles: string[] = STORY_FONT_FILES.map((u) => fileURLToPath(u)),
+): Promise<Buffer> {
   if (!fontFiles.every((f) => existsSync(f))) {
     throw new Error('The --story fonts are missing from this install (assets/fonts). Reinstall ghflex and try again.');
   }

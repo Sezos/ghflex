@@ -59,15 +59,14 @@ test('a full card fits inside the canvas', () => {
   }
 });
 
-// These two need the bundled DejaVu Sans Mono files in assets/fonts (added once the owner approves the download).
-test.skipIf(!fontsPresent)('PNG is exactly 1080x1920', async () => {
+test('PNG is exactly 1080x1920', async () => {
   const png = await renderStoryPng(renderCard(richData(), opts));
   expect(png.subarray(1, 4).toString()).toBe('PNG');
   expect(png.readUInt32BE(16)).toBe(1080);
   expect(png.readUInt32BE(20)).toBe(1920);
 });
 
-test.skipIf(!fontsPresent)('every glyph used by fixture cards exists in the bundled fonts', async () => {
+test('every glyph used by fixture cards exists in the bundled fonts', async () => {
   // opentype.js ships no type declarations; a non-literal specifier keeps typecheck happy
   type Font = { charToGlyphIndex(ch: string): number };
   type Parse = (buf: ArrayBuffer) => Font;
@@ -89,6 +88,10 @@ test.skipIf(!fontsPresent)('every glyph used by fixture cards exists in the bund
   }
 });
 
-test.skipIf(fontsPresent)('without the bundled fonts, renderStoryPng fails with a clear message', async () => {
-  await expect(renderStoryPng([[{ text: 'x' }]])).rejects.toThrow(/fonts/i);
+test('REVIEW: the bundled fonts ship with the package', () => {
+  expect(fontsPresent).toBe(true);
+});
+
+test('without the fonts, renderStoryPng fails with a clear message', async () => {
+  await expect(renderStoryPng([[{ text: 'x' }]], ['/nonexistent/DejaVuSansMono.ttf'])).rejects.toThrow(/fonts/i);
 });
