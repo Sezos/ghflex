@@ -2,7 +2,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import { renderCard } from '../../src/render/card.js';
-import { buildStorySvg, renderStoryPng, STORY_FONT_FILES, STORY_H, STORY_W } from '../../src/render/story.js';
+import {
+  buildStorySvg,
+  renderStoryPng,
+  STORY_FONT_FILES,
+  STORY_H,
+  STORY_SAFE_Y,
+  STORY_W,
+} from '../../src/render/story.js';
 import { emptyData, longNamesData, plain, richData } from '../fixtures/cards.js';
 
 const opts = { theme: 'neon', hidePrivate: false, tagline: 'shipping > perfect' } as const;
@@ -56,6 +63,18 @@ test('a full card fits inside the canvas', () => {
     expect(Number(m[1])).toBeLessThan(STORY_W);
     expect(Number(m[2])).toBeGreaterThan(0);
     expect(Number(m[2])).toBeLessThan(STORY_H);
+  }
+});
+
+test("a full card stays out of Instagram's top and bottom overlays", () => {
+  // the profile row covers the top of a story and the reply bar covers the bottom
+  for (const data of [richData(), longNamesData(), emptyData()]) {
+    const svg = buildStorySvg(renderCard(data, opts), { family: 'DejaVu Sans Mono', advance: 1233 / 2048 });
+    const fontSize = Number(svg.match(/font-size="([\d.]+)"/)?.[1]);
+    const baselines = [...svg.matchAll(/<text x="[\d.]+" y="([\d.]+)"/g)].map((m) => Number(m[1]));
+    expect(baselines.length).toBeGreaterThan(0);
+    expect(Math.min(...baselines) - 0.75 * fontSize).toBeGreaterThanOrEqual(STORY_SAFE_Y);
+    expect(Math.max(...baselines) + 0.25 * fontSize).toBeLessThanOrEqual(STORY_H - STORY_SAFE_Y);
   }
 });
 

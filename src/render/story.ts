@@ -4,11 +4,13 @@ import { type Line, xterm256ToHex } from './spans.js';
 
 export const STORY_W = 1080;
 export const STORY_H = 1920;
+/** Instagram draws the profile row over the top of a story and the reply bar over the bottom (Meta: ~250px). */
+export const STORY_SAFE_Y = 250;
 
 const COLUMNS = 56;
 const LINE_HEIGHT = 1.28;
 const MAX_TEXT_W = 960;
-const MAX_TEXT_H = 1800;
+const MAX_TEXT_H = STORY_H - 2 * STORY_SAFE_Y;
 const DEFAULT_FG = 252;
 
 /** DejaVu Sans Mono: 1233/2048 em per column. Same file layout from src/ (tests) and dist/ (published). */
