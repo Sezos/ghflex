@@ -1,5 +1,15 @@
 name: release
 
+# Publishes the version in package.json to npm with trusted publishing (OIDC), so no npm token is stored
+# anywhere. npm adds the provenance statement on its own.
+#
+# One-time setup on npmjs.com: ghflex → Settings → Trusted publishing → GitHub Actions, with user Sezos,
+# repository ghflex, workflow release.yml, and "npm publish" allowed. A new trusted publisher expires
+# unless a publish succeeds within 2 days, so add it right before a release.
+#
+# To release: bump "version" in package.json on main, push, then run this workflow from the Actions tab
+# or with `gh workflow run release.yml`.
+
 on:
   workflow_dispatch:
 
@@ -11,13 +21,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24 # trusted publishing needs npm 11.5.1+, which Node 24 ships
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false # never restore a cache into a release build
       - run: npm ci
       - run: npm test
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish --access public
