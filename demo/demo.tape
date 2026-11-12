@@ -5,8 +5,8 @@ Output demo/demo.gif
 
 Set Shell "bash"
 Set FontSize 16
-Set Width 640
-Set Height 1160
+Set Width 740
+Set Height 1100
 Set Padding 28
 Set TypingSpeed 55ms
 Set Theme { "name": "ghflex", "background": "#0b0d12", "foreground": "#d0d0d0", "cursor": "#ff87ff", "selection": "#2a2140", "black": "#0b0d12", "red": "#ff5f87", "green": "#00ff00", "yellow": "#ffd700", "blue": "#0087ff", "magenta": "#ff87ff", "cyan": "#00d7ff", "white": "#eeeeee", "brightBlack": "#6c6c6c", "brightRed": "#ff87af", "brightGreen": "#5fff87", "brightYellow": "#ffff87", "brightBlue": "#5fafff", "brightMagenta": "#ffafff", "brightCyan": "#87ffff", "brightWhite": "#ffffff" }
@@ -20,4 +20,4 @@ Sleep 400ms
 Type "npx ghflex --hide-private"
 Sleep 400ms
 Enter
-Sleep 13s
+Sleep 20s
